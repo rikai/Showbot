@@ -60,15 +60,17 @@ try:
                 if second == 'x':  (second, havesec) = ('0', False)
                 hour = (int(hour) % 12) + (0 if cmd == '!am' else 12)
                 havedate = True
-                if _date is None:
-                    havedate = False
-                    _date = '01.01.13'
-                (month, day, year) = _date.split('.') ## Yepp, this is how Jupiter Broadcasting writes dates numerically
-                year = int(year)
-                if year < 1000:
-                    year += 2000
                 os.environ['TZ'] = 'US/Pacific'
                 time.tzset()
+                if _date is None:
+                    havedate = False
+                    _date = time.localtime()
+                    year, month, day = _date.tm_year, _date.tm_mon, _date.tm_mday
+                else:
+                    (month, day, year) = _date.split('.') ## Yepp, this is how Jupiter Broadcasting writes dates numerically
+                year, _day = int(year), day
+                if year < 1000:
+                    year += 2000
                 (month, day, minute, second) = [int(x) for x in (month, day, minute, second)]
                 _time = time.mktime((year, month, day, hour, minute, second, 0, 0, -1))
                 _time = time.gmtime(_time)
@@ -81,7 +83,7 @@ try:
                 else:
                     if (hour == 0) and (minute == 0) and (second == 0) and (day == 2):
                         (hour, day) = (24, 1)
-                    print('%02d:%02d%s %sUTC' % (hour, minute, (':%02d' % second) if havesec else '', '' if day == 1 else 'next day '))
+                    print('%02d:%02d%s %sUTC' % (hour, minute, (':%02d' % second) if havesec else '', '' if day == _day else 'next day '))
             elif cmd == '!wtf':
                 # this requires the package wtf
                 Popen(['wtf'] + line.split(' '), stderr = sys.stdout)
