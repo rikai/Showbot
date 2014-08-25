@@ -2,6 +2,7 @@
 
 require 'chronic_duration'
 require 'twitter'
+require 'htmlentities'
         
 module Cinch	
   module Plugins
@@ -40,7 +41,7 @@ module Cinch
           seconds_ago = (Time.now - created_at.to_time).to_i
           relative_time = ChronicDuration.output(seconds_ago, :format => :long)
 
-          return "@#{@twitter_laststatus_user}: #{status.text} (#{relative_time} ago)"
+          return HTMLEntities.new.decode "@#{@twitter_laststatus_user}: #{status.text} (#{relative_time} ago)"
         end
       end
 
