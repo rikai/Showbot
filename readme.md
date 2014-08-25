@@ -28,6 +28,7 @@ Built on [cinch](https://github.com/cinchrb/cinch) and [sinatra](http://www.sina
 
  * [RVM with Ruby 1.9.2 or Greater](https://rvm.io/)
  * [Bundler](http://gembundler.com/)
+ * [HTMLEntities](https://rubygems.org/gems/htmlentities)
 
 ### Setup
 
