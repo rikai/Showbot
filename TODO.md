@@ -6,7 +6,7 @@ Easy
 ---------
 - [x] Correctly parse html entities in the twitter plugin
 - [ ] Clean up the stdout output to make it more readable
-- [ ] Add a !linuxgames to get a count of the number of linux games available on steam either dynamically via the storefront API or by perhaps using [SteamLinux](https://github.com/SteamDatabase/SteamLinux)
+- [x] Add a !linuxgames to get a count of the number of linux games available on steam either dynamically via the storefront API or by perhaps using [SteamLinux](https://github.com/SteamDatabase/SteamLinux)
 
 Moderate
 ---------

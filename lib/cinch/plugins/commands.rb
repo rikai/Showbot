@@ -25,6 +25,7 @@ module Cinch
           "!link - Know the link for that? Suggest it and make the show better.",
           "!current - What's playing on #{shared[:Live_Url]}? I've got you covered.",
           "!last_status - The last tweet by @#{shared[:Twitter_User].join(", @")} delievered to you in IRC. Sweet.",
+          "!linuxgames - Report the number of linux games available on steam",
           "!about - Was #{shared[:Bot_Nick]} coded or did it spontaniously come into existence?",
           "!help - Uh, this.",
         ].join("\n")
