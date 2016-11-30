@@ -14,6 +14,7 @@ require 'sinatra' unless defined?(Sinatra)
 
 configure do
   Dotenv.load
+  LIVE_URL = ENV['DATA_JSON_URL']
   Dir[File.join(Dir.pwd, 'locales', '*.yml')].each {|file| I18n.load_path << file }
   # Make sure only available locales are used. This will be the default in the
   # future but we need this to silence a deprecation warning
@@ -47,4 +48,3 @@ configure :test do
   DataMapper.finalize
 end
 
-LIVE_URL = ENV['DATA_JSON_URL']
