@@ -2,6 +2,7 @@ require File.join(File.dirname(__FILE__), 'environment')
 
 require 'optparse'
 require 'cinchize'
+require './extensions.rb'
 require 'droplet_kit'
 require 'auth/admin_plugin'
 
