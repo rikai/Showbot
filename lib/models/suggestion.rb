@@ -15,7 +15,7 @@ class Suggestion
   include DataMapper::Resource
 
   property :id,         Serial
-  property :title,      String,   :length => Shows.fetch_live_show.limit,
+  property :title,      String,   :length => Shows.fetch_live_show.nil? ? 40 : Shows.fetch_live_show.limit,
     :message => I18n.t('messages.models.suggestion')
   property :user,       String
   property :show,       String
