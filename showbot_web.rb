@@ -21,7 +21,7 @@ class ShowbotWeb < Sinatra::Base
   configure do
     set :public_folder, "#{File.dirname(__FILE__)}/public"
     set :views, "#{File.dirname(__FILE__)}/views"
-    set :shows, Shows.new { SHOWS_JSON }
+    set :shows, Shows.new(JSON.parse(File.open(SHOWS_JSON).read)["shows"])
     set :live_mode_enabled, ENV['LIVE_MODE'] == "true"
     set :socket_key_id_enabled, ENV['SOCKET_KEY_ID'] == "true"
   end

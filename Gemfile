@@ -60,6 +60,7 @@ gem 'dm-is-counter_cacheable'
 # Development Gems
 group :development, :test do
   gem 'rspec'
+  gem 'minitest' , '>= 5.1'
 end
 
 group :development do

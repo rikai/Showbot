@@ -1,0 +1,12 @@
+{
+    "shows": [
+        {
+            "rss":"http://feeds.feedburner.com/linuxunvid",
+            "url": "lu",
+            "title": "Linux Unplugged",
+            "aliases": [
+                "lup"
+            ]
+        }
+    ]
+}
