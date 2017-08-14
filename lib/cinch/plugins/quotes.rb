@@ -41,7 +41,20 @@ module Cinch
 
       def initialize(*args)
         super
-        @quote_list = QuoteList.new(config)
+        if !config[:quotes_file].nil?
+          puts File.dirname(__FILE__)
+          @can_save = true
+          begin
+            @quotes_path = File.join(File.dirname(__FILE__), "../../#{config[:quotes_file]}")
+            quotes = YAML.load_file(@quotes_path)
+            @quote_list = QuoteList.new(quotes)
+          rescue Errno::ENOENT
+            @quote_list = QuoteList.new(nil)
+          end
+        else
+          @can_save = false
+          @quote_list = QuoteList.new(nil)
+        end
       end
 
       def command_quote(m, name)
@@ -68,6 +81,14 @@ module Cinch
       def command_alias_del(m, original, alias_name)
         @quote_list.del_alias(original, alias_name)
         m.reply("Alias removed!")
+      end
+      
+      private
+      
+      def save_to_disk
+        if @can_save
+          File.open(@quotes_path, "w") {|file| file.write(@quote_list.get_yaml)}
+        end
       end
     end
   end
