@@ -1,0 +1,7 @@
+language: ruby
+rvm:
+- 2.1
+script:
+- bundle exec rake test:test
+- bundle exec rake spec:unit
+- bundle exec rake spec:acceptance
