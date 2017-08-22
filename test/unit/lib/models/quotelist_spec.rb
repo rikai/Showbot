@@ -5,7 +5,7 @@ require File.join Dir.pwd, 'lib/models/quotelist.rb'
 describe QuoteList do
   before(:context) do
     @quotes = {
-      'Test' => {
+      'test' => {
         :aliases => ['tester', 'testivus'],
         :quotes => [
           'A test tests a test of tests.',
@@ -17,20 +17,20 @@ describe QuoteList do
   end
 
   it 'matches a name' do
-    expect(@quote_list.quote_for 'Test').to satisfy do |value|
-      @quotes['Test'][:quotes].include? value
+    expect(@quote_list.quote_for 'test').to satisfy do |value|
+      @quotes['test'][:quotes].include? value
     end
   end
 
   it 'matches a name case insensitively' do
     expect(@quote_list.quote_for 'tesT').to satisfy do |value|
-      @quotes['Test'][:quotes].include? value
+      @quotes['test'][:quotes].include? value
     end
   end
 
   it 'matches an alias' do
     expect(@quote_list.quote_for 'teSter').to satisfy do |value|
-      @quotes['Test'][:quotes].include? value
+      @quotes['test'][:quotes].include? value
     end
   end
 
