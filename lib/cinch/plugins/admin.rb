@@ -39,6 +39,7 @@ module Cinch
       def initialize(*args)
         super *args
         @data_json = DataJSON.new config[:data_json]
+        @shows = Shows.new(JSON.parse(File.open(SHOWS_JSON).read)["shows"])
       end
 
       def command_join(m, channel)
@@ -50,14 +51,14 @@ module Cinch
       end
 
       def command_show_list(m)
-        shows = Shows.shows
+        shows = @shows.shows
         shows.each do |show|
           m.user.send "#{show.title}: !start_show #{show.url}"
         end
       end
 
       def command_start_show(m, show_slug)
-        show = Shows.find_show show_slug
+        show = @shows.find_show show_slug
         if show.nil?
           m.user.send 'Sorry, but I couldn\'t find that particular show.'
           return
