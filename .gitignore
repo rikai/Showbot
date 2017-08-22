@@ -67,3 +67,5 @@ Thumbs.db
 
 # unless supporting rvm < 1.11.0 or doing something fancy, ignore this:
 .rvmrc
+.vagrant/
+public/data.json
