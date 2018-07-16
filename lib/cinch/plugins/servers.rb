@@ -11,6 +11,7 @@ module Cinch
       match /server\s+(.+)/i, :method => :command_server_service  # !server <service>
       match /irc/i,           :method => :command_irc             # !irc
       match /mumble/i,        :method => :command_mumble          # !mumble
+      match /peertube/i,      :method => :command_peertube        # !peertube
 
       def help
         [
@@ -56,6 +57,11 @@ module Cinch
 
       def command_mumble(m)
         m.user.send 'Mumble info - Server: mumble.jupiterbroadcasting.org, Port: 64734'
+      end
+
+      def command_peertube(m)
+        m.user.send 'Official Peertube Server: https://getjupiter.com'
+        m.user.send 'Community Peertube Server: https://peertube.linuxrocks.online'
       end
     end
   end
