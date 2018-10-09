@@ -8,7 +8,7 @@
 #   aliases: (array[string]) An array of aliases that can additionally match
 #     the show
 class Show
-  attr_reader :title, :url, :rss, :aliases
+  attr_reader :title, :url, :rss, :aliases, :limit
 
   # param json_hash: (hash) A hash of show data with the following keys:
   #   title: (string) The show's title
@@ -22,6 +22,7 @@ class Show
     @title = json_hash["title"]
     @url = json_hash["url"]
     @rss = json_hash["rss"]
+    @limit = json_hash.key?("limit") ? json_hash["limit"] : 40
     @aliases = (json_hash["aliases"] || []).map do |show_alias|
       show_alias.downcase
     end
