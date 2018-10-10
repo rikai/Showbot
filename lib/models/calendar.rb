@@ -1,4 +1,4 @@
-require 'google/api_client'
+require 'google/apis/calendar_v3'
 require 'chronic_duration'
 require 'tzinfo'
 
@@ -42,44 +42,53 @@ module Calendar
   # and is embedded in your calendar's URLs. The api_key must be obtained from
   # Google through their API Console at https://code.google.com/apis/console
   #
-  # TODO: Right now, this errors out on missing/invalid config. It should
-  #   instead return a NullCalendar object that returns no events.
   def self.new(config = {})
-    google_config = {
-      :app_name => config[:app_name],
-      :app_version => config[:app_version],
-      :calendar_id => config[:calendar_id],
-      :api_key => config[:api_key]
-    }
+    # Return a NullCalendar if the config doesn't have all of the keys that are
+    # necessary to create a GoogleCalendar
+    return NullCalendar.new unless (config.has_key? :api_key and
+            config.has_key? :calendar_id and
+            config.has_key? :app_name and
+            config.has_key? :app_version)
 
-    google_client = Google::APIClient.new(
-      :application_name => google_config[:app_name],
-      :application_version => google_config[:app_version],
-      :key => google_config[:api_key],
-      :authorization => nil
-    )
+    # Configure the client options of this Google API Client. Specifically, set
+    # the app name and version as per the configuration hash.
+    client_options = Google::Apis::ClientOptions.default.dup
+    client_options.application_name = config[:app_name]
+    client_options.application_version = config[:app_version]
 
-    google_api = google_client.discovered_api('calendar', 'v3')
+    # Configure the request options of this Google API Client. Specifically,
+    # this is where we'll set up OAuth, if we ever implement it. For now, this
+    # can stay commented out -- it just does the default as it is.
+    request_options = Google::Apis::RequestOptions.default.dup
+    # request_options.authorization = nil
 
-    GoogleCalendar.new(google_config, google_client, google_api)
+    # Create a CalendarService API client to read a Google Calendar.
+    cal_service = Google::Apis::CalendarV3::CalendarService.new
+    # Configure the API key
+    cal_service.key = config[:api_key]
+    # And the client and request options from above
+    cal_service.client_options = client_options
+    cal_service.request_options = request_options
+
+    GoogleCalendar.new(config[:calendar_id], cal_service)
+  end
+
+  # A NullCalendar that returns no events, for use when an invalid configuration
+  # is given to this module's constructor.
+  class NullCalendar
+    def events
+        return []
+    end
   end
 
   # The Calendar::GoogleCalendar class provides the default backend for Calendar
   class GoogleCalendar
-    # param config: (hash) A config hash with the keys:
-    #
-    #   app_name:    The name of your application
-    #   app_version: The version of your application
-    #   calendar_id: The Google Calendar ID of the calendar you want to use
-    #   api_key:     Your API key for the Google Calendar API
-    #
-    # param client: (Google::APIClient) A Google API client object
-    # param api: (Google::APIClient::API) A Google API object, obtained from
-    #   calling the `Google::APIClient#discovered_api` method.
-    def initialize(config, client, api)
-      @config = config
-      @client = client
-      @calendar = api
+    # param calendar_id: The Google Calendar ID of the calendar you want to use
+    # param cal_service: (Google::Apis::CalendarV3::CalendarService) A Google
+    #   Calendar API (V3) service object
+    def initialize(calendar_id, cal_service)
+      @calendar_id = calendar_id
+      @cal_service = cal_service
     end
 
     # Get live events for the next 7 days
@@ -88,18 +97,14 @@ module Calendar
     # Events are ordered by start time, ascending
     # The "LIVE: " prefix is stripped from the event summary
     def events
-      results = @client.execute(
-        :api_method => @calendar.events.list,
-        :authenticated => false,
-        :parameters => {
-          'calendarId' => @config[:calendar_id],
-          'fields' => 'items(start,end,summary)',
-          'singleEvents' => true,
-          'orderBy' => 'startTime',
-          'timeMin' => DateTime.now.to_s,
-          'timeMax' => (DateTime.now + 7).to_s,
-          'q' => 'LIVE'
-        }
+      results = @cal_service.list_events(
+        @calendar_id,
+        order_by: 'startTime',
+        q: 'LIVE',
+        single_events: true,
+        time_max: (DateTime.now + 7).to_s,
+        time_min: DateTime.now.to_s,
+        fields: 'items(start,end,summary)',
       )
 
       results.data.items.map do |event|

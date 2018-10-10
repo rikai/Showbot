@@ -21,7 +21,7 @@ follwing message once it is connected to an IRC network:
 
 ### Prerequisites
 
- * [RVM with Ruby 2.1.10 or greater](https://rvm.io/)
+ * [RVM with Ruby 2.1.2 or greater](https://rvm.io/)
  * [Bundler](http://gembundler.com/)
  * Git (for pulling down source from Github, alternately download a tarball)
  * SQLite3 (for development)

@@ -4,16 +4,9 @@ require File.join Dir.pwd, 'lib/models/calendar.rb'
 
 describe Calendar::GoogleCalendar do
   before(:example) do
-    @google_config = {
-      :app_name => 'TestBot',
-      :app_version => '1.0.0',
-      :calendar_id => 'googlecalendarid',
-      :api_key => 'googlecalendarapikey'
-    }
-    @google_client = double('Google API Client')
-    @google_api = double('Google Calendar API')
-
-    @google_calendar = Calendar::GoogleCalendar.new(@google_config, @google_client, @google_api)
+    @calendar_id = 'googlecalendarid'
+    @google_calendar_service = double('Google Calendar Service')
+    @google_calendar = Calendar::GoogleCalendar.new(@calendar_id, @google_calendar_service)
   end
 
   it 'gets events from the Google Calendar API' do
@@ -27,14 +20,23 @@ describe Calendar::GoogleCalendar do
       })
     ]))
 
-    expect(@google_client).to receive(:execute) { api_results }
-    allow(@google_api).to receive(:events) { double(:list => nil) }
+    allow(@google_calendar_service).to receive(:list_events) { api_results }
 
     events = @google_calendar.events
     expect(events.length).to eq 1
     expect(events[0].summary).to eq 'Event'
     expect(events[0].start_time).to eq start_time
     expect(events[0].end_time).to eq end_time
+  end
+end
+
+describe Calendar::NullCalendar do
+  before(:example) do
+    @null_calendar = Calendar::NullCalendar.new
+  end
+
+  it 'returns an empty list of events' do
+    expect(@null_calendar.events).to be_empty
   end
 end
 
