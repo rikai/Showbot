@@ -75,6 +75,14 @@
                 	"rss":"http://www.jupiterbroadcasting.com/feeds/TechTalkToday.xml",
 	                "url": "t3b",
         	        "title": "Tech Talk Today Bonus!"
+        	},
+        	{
+                	"rss":"https://feeds.fireside.fm/friday/rss",
+	                "url": "friday",
+        	        "title": "Friday Stream",
+			"aliases": [
+        	                "fs", "friday"
+                	]
         	}
 	]
 }
