@@ -31,29 +31,39 @@ end
 # Database
 # -----------------------
 
+MIGRATIONS_PATH = File.join(File.dirname(__FILE__), 'db', 'migrate')
+
 namespace :db do
-  desc 'Auto-migrate the database (destroys data)'
+  desc 'Run pending database migrations'
   task :migrate => :environment do
-    puts "This will destroy all data in the _#{ENV['RACK_ENV']}_ database, continue? (yN)"
-    if STDIN::gets.strip.downcase == 'y'
-      DataMapper.auto_migrate!
-    else
-      puts "Okay, exiting."
-    end
+    conn = ActiveRecord::Base.connection
+    ctx  = ActiveRecord::MigrationContext.new(MIGRATIONS_PATH, ActiveRecord::Base.connection_pool.schema_migration)
+    ctx.migrate
+    puts "Migrations complete. Current version: #{ctx.current_version}"
   end
 
-  desc 'Auto-upgrade the database (preserves data)'
-  task :upgrade => :environment do
-    DataMapper.auto_upgrade!
+  desc 'Roll back the last migration'
+  task :rollback => :environment do
+    conn = ActiveRecord::Base.connection
+    ctx  = ActiveRecord::MigrationContext.new(MIGRATIONS_PATH, ActiveRecord::Base.connection_pool.schema_migration)
+    ctx.rollback
+    puts "Rolled back to version: #{ctx.current_version}"
+  end
+
+  desc 'Show current migration version'
+  task :version => :environment do
+    conn = ActiveRecord::Base.connection
+    ctx  = ActiveRecord::MigrationContext.new(MIGRATIONS_PATH, ActiveRecord::Base.connection_pool.schema_migration)
+    puts "Current version: #{ctx.current_version}"
   end
 
   desc 'Seed the database with some fake title suggestions'
   task :seed => :environment do
     5.times do |n|
       Suggestion.create(
-        :title => "Test #{Time.now.to_i} #{n}",
-        :show => 'b2w',
-        :user => 'derp'
+        title: "Test #{Time.now.to_i} #{n}",
+        show: 'b2w',
+        user: 'derp'
       )
     end
   end
@@ -83,7 +93,7 @@ end
 namespace :sass do
   desc 'Watches and compiles sass to proper directory'
   task :watch => :environment do
-    sh 'sass --watch -r ./sass/bourbon/lib/bourbon.rb sass/showbot.scss:public/css/showbot.css'
+    sh 'sass --watch --load-path sass sass/showbot.scss public/css/showbot.css'
   end
 end
 

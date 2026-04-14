@@ -1,53 +1,49 @@
-source 'http://rubygems.org'
+source 'https://rubygems.org'
+
+ruby '~> 3.4'
 
 # Regular
-gem 'activesupport', '<= 3.2.16'
+gem 'activesupport'
 gem 'tzinfo'
 gem 'tzinfo-data'
 gem 'i18n'
-gem 'rake'
+gem 'rake', '~> 13.3.0'
 gem 'dotenv'
 
-# Backups
-gem 'backup'
-gem 'fog', '~> 1.9.0'
-gem 'whenever', require: false
-gem 'net-ssh', ['>= 2.3.0', '<= 2.5.2']
-gem 'excon', '~> 0.17.0'
-gem 'mail', '~> 2.5.0'
+group :backup do
+  gem 'backup'
+  gem 'fog'
+  gem 'whenever', require: false
+  gem 'net-ssh'
+  gem 'excon'
+  gem 'mail'
+end
 
 # Web
 gem 'sinatra'
 gem 'sinatra-reloader'
 gem 'thin'
 gem 'haml'
-gem 'sass'
-gem 'coffee-script'
-gem 'execjs'
-gem 'therubyracer'
 gem 'eat'
 
-# Showbot Specific
-gem 'cinch'
-gem 'cinchize'
-gem 'chronic'
-gem 'chronic_duration'
-gem 'twitter'
-gem 'google-api-client'
-gem 'htmlentities'
-gem 'cinch-identify'
-gem 'stopwords', '0.2'
+# Web-facing Showbot dependencies
+gem 'stopwords', '~> 0.2'
 
-# Data Mapper
-gem 'data_mapper'
-gem 'dm-core'
-gem 'dm-timestamps'
-gem 'dm-validations'
-gem 'dm-aggregates'
-gem 'dm-migrations'
-gem 'dm-mysql-adapter'
-gem 'dm-types'
-gem 'dm-is-counter_cacheable'
+# IRC bot dependencies (not needed for web-only)
+group :irc do
+  gem 'cinch'
+  gem 'cinchize'
+  gem 'chronic'
+  gem 'chronic_duration'
+  gem 'x'
+  gem 'google-apis-calendar_v3'
+  gem 'htmlentities'
+  gem 'cinch-identify'
+end
+
+# Database
+gem 'activerecord', '~> 7.1'
+gem 'sinatra-activerecord'
 
 # Development Gems
 group :development, :test do
@@ -55,13 +51,18 @@ group :development, :test do
 end
 
 group :development do
-  gem 'dm-sqlite-adapter'
+  gem 'sqlite3'
   gem 'foreman'
-  gem 'rb-fsevent'
+  gem 'sass-embedded'
+end
+
+group :production do
+  gem 'mysql2'
 end
 
 group :test do
   gem 'rack-test', require: false
+  gem 'test-unit'
 end
 
 

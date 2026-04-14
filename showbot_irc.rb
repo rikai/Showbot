@@ -4,9 +4,6 @@ require 'optparse'
 require 'cinchize'
 
 
-# Required to parse the cinchize.yml file properly
-YAML::ENGINE.yamler = 'psych'
-
 Options = {
   :ontop => true,
   :system => false,

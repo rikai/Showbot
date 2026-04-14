@@ -10,7 +10,7 @@
     %link(rel="stylesheet" href="/css/reset.css")
     %link(rel="stylesheet" href="/css/text.css")
     %link(rel="stylesheet" href="/css/960.css")
-    %link(rel="stylesheet" href="/css/tipsy.css")
+    %link{rel: "stylesheet", href: "https://cdnjs.cloudflare.com/ajax/libs/tippy.js/6.3.7/tippy.css", onerror: "this.onerror=null;this.href='/css/tippy.css'"}
     %link(rel="stylesheet" href="/css/showbot.css?v=5")
     / Modernizer
     %script{:type => "text/javascript", :src  => "/js/modernizr.custom.js"}
@@ -24,7 +24,7 @@
         %h1.logo
           %a{:href => '/'}=t('views.layout.header')
           -# display:none so the heart doesn't briefly show
-          .heart{:style => 'display:none;'}=t('views.layout.heart')
+          .heart{:style => 'display:none;'}!=t('views.layout.heart')
         %nav
           %ul
             %li
@@ -35,7 +35,7 @@
       %hr.push
 
       #content
-        =yield
+        !=yield
 
       .footer_push
     .container_12
@@ -50,39 +50,33 @@
                t('views.layout.exist.para_3')     |
           %li.grid_3.push_2
             %h2=t('views.layout.who.message')
-            %p=t('views.layout.who.para_1')
-            %p=t('views.layout.who.para_2')
+            %p!=t('views.layout.who.para_1')
+            %p!=t('views.layout.who.para_2')
           %li.grid_3.push_2
             %h2=t('views.layout.where.message')
-            %p=t('views.layout.where.para_1')
-            %p=t('views.layout.where.para_2')
-            %p=t('views.layout.where.para_3')
+            %p!=t('views.layout.where.para_1')
+            %p!=t('views.layout.where.para_2')
+            %p!=t('views.layout.where.para_3')
 
     / Javascript at the bottom for fast page loading
-    / Grab Google CDN's jQuery. fall back to local if necessary
-    %script{:type => "text/javascript", :src => "http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"}
-    %script{:type => "text/javascript", :src => "http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"}
+    %script{src: "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"}
     :javascript
-      !window.jQuery && document.write('<script src="/js/jquery.min.js"><\/script>')
+      window.jQuery || document.write('<script src="/js/jquery.min.js"><\/script>')
     / JQuery Plugins
-    %script{:type => "text/javascript", :src  => "/js/jquery.timeago.js"}
-    %script{:type => "text/javascript", :src  => "/js/jquery.tablesorter.min.js"}
-    %script{:type => "text/javascript", :src => "/js/jquery.tipsy.js"}
+    %script{src: "https://cdnjs.cloudflare.com/ajax/libs/jquery-timeago/1.6.7/jquery.timeago.min.js"}
+    :javascript
+      jQuery.fn.timeago || document.write('<script src="/js/jquery.timeago.js"><\/script>')
+    %script{src: "https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.min.js"}
+    :javascript
+      jQuery.fn.tablesorter || document.write('<script src="/js/jquery.tablesorter.min.js"><\/script>')
+    %script{src: "https://cdnjs.cloudflare.com/ajax/libs/tippy.js/6.3.7/tippy-bundle.umd.min.js"}
+    :javascript
+      window.tippy || document.write('<script src="/js/tippy-bundle.umd.min.js"><\/script>')
     %script{:type => "text/javascript", :src => "/js/d3.v3.min.js"}
     %script{:type => "text/javascript", :src => "/js/d3.layout.cloud.js"}
     %script{:type => "text/javascript", :src => "/js/word_cloud.js"}
     / Main JS
     %script{:type => "text/javascript", :src  => "/js/showbot.js"}
-    :javascript
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-64666309-1']);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
     :javascript
       $(function() {
         $('tr.cluster-top').children('td.title')

@@ -2,28 +2,18 @@
 #
 # Model that tracks the number of times a word appears across all shows.
 
-require 'dm-core'
-require 'dm-validations'
-require 'dm-timestamps'
-require 'dm-aggregates'
 require 'stopwords'
 
-class WordCount
-  include DataMapper::Resource
-
-  property :id,     Serial
-  property :word,   String,   :unique => true, :required => true
-  property :frequency,  Integer,  :default => 0
+class WordCount < ActiveRecord::Base
+  validates :word, presence: true, uniqueness: true
 
   def add_one
-    self.frequency = self.frequency + 1
-    self.save
+    increment!(:frequency)
   end
 
   def idf
     WordCount.count_document_frequency if IdfTracker.count == 0
-
-    Math.log( IdfTracker.first.document_count.to_f / self.frequency )
+    Math.log(IdfTracker.first.document_count.to_f / frequency)
   end
 
   # ------------------
@@ -32,23 +22,34 @@ class WordCount
 
   def self.count_document_frequency
     if IdfTracker.count == 0
-      suggestion_sets = Suggestion.all(:order => [:created_at.desc]).group_by_show
-      IdfTracker.create( last_suggestion_time: Suggestion.last.created_at, last_suggestion_show: Suggestion.last.show )
+      suggestion_sets = Suggestion.group_by_show(Suggestion.order(created_at: :desc))
+      IdfTracker.create(
+        last_suggestion_time: Suggestion.last.created_at,
+        last_suggestion_show: Suggestion.last.show
+      )
       IdfTracker.first.update(document_count: suggestion_sets.count)
     else
-      # get shows since last check - make sure that the first titles aren't from the same show as the last one counted
       from = IdfTracker.first.last_suggestion_time
-      suggestion_sets = Suggestion.all(:created_at.gt => from, :order => [:created_at.desc]).group_by_show
+      suggestion_sets = Suggestion.group_by_show(
+        Suggestion.where('created_at > ?', from).order(created_at: :desc)
+      )
       return if suggestion_sets.count == 0
 
-      first_new_suggestion = Suggestion.first(:created_at.gt => from)
-      if IdfTracker.first.last_suggestion_show == first_new_suggestion.show and
+      first_new_suggestion = Suggestion.where('created_at > ?', from).first
+      new_suggestions = Suggestion.where('created_at > ?', from)
+      if IdfTracker.first.last_suggestion_show == first_new_suggestion.show &&
          (IdfTracker.first.last_suggestion_time - first_new_suggestion.created_at) > 0.75
-        IdfTracker.first.update(document_count: IdfTracker.first.document_count + suggestion_sets.count - 1, # already counted first episode of new set
-          last_suggestion_show: Suggestion.last(:created_at.gt => from).show, last_suggestion_time: Suggestion.last(:created_at.gt => from).created_at)
+        IdfTracker.first.update(
+          document_count: IdfTracker.first.document_count + suggestion_sets.count - 1,
+          last_suggestion_show: new_suggestions.last.show,
+          last_suggestion_time: new_suggestions.last.created_at
+        )
       else
-        IdfTracker.first.update(document_count: IdfTracker.first.document_count + suggestion_sets.count,
-          last_suggestion_show: Suggestion.last(:created_at.gt => from).show, last_suggestion_time: Suggestion.last(:created_at.gt => from).created_at)
+        IdfTracker.first.update(
+          document_count: IdfTracker.first.document_count + suggestion_sets.count,
+          last_suggestion_show: new_suggestions.last.show,
+          last_suggestion_time: new_suggestions.last.created_at
+        )
       end
     end
 
@@ -58,12 +59,12 @@ class WordCount
       word_list = []
       set.suggestions.each { |suggestion| word_list += tokenize(suggestion.title.downcase) }
       word_list = word_list.uniq - my_stop_words
-      word_list.each { |word| WordCount.first_or_create(:word => word).add_one }
+      word_list.each { |word| WordCount.find_or_create_by(word: word).add_one }
     end
   end
 
   def self.stop_words
-    sw = Stopwords::STOP_WORDS
+    sw = Stopwords::STOP_WORDS.dup
     sw.push("'s", "n't", "'ll", "'re", "'d", "'ve", "'m", ".", "!", "?", ",", "*", "...", "(", ")", "&", "``", "''", ":")
   end
 
@@ -82,12 +83,12 @@ class WordCount
         words.each { |w| set_counts[w] += 1 }
       end
 
-      set_counts.each { |w, tf| set_tfidf[w] = tf * WordCount.first(word: w).idf }
+      set_counts.each { |w, tf| set_tfidf[w] = tf * WordCount.find_by(word: w).idf }
 
       max_val = set_tfidf.values.max
       this_cloud_data = Array.new
-      set_tfidf.sort_by {|k, v| -v}.each { |k, v| this_cloud_data.push( {key: k, value: v / max_val} ) }
-      all_clouds_data.push( {show: set.suggestions.first.show, time: set.suggestions.first.created_at, data: this_cloud_data[0..249]} )
+      set_tfidf.sort_by { |k, v| -v }.each { |k, v| this_cloud_data.push({ key: k, value: v / max_val }) }
+      all_clouds_data.push({ show: set.suggestions.first.show, time: set.suggestions.first.created_at, data: this_cloud_data[0..249] })
     end
 
     all_clouds_data
@@ -122,7 +123,7 @@ def tokenize(str)
   # Assume sentence tokenization has been done first, so split FINAL periods only
   str.gsub!(/ ([^.]) \.  ([\]\)\}\>\"\']*) [ \t]* $ /x, '\1 .\2')
 
-  # hHowever, we may as well split ALL question marks and exclamation points,
+  # However, we may as well split ALL question marks and exclamation points,
   # since they shouldn't have the abbrev-marker ambiguity problem
   str.gsub!(/([?!])/, ' \1 ')
 
@@ -131,11 +132,8 @@ def tokenize(str)
 
   str.gsub!(/(-{2,})/, ' \1 ')
 
-  # Add a space to the beginning and end of each line, to reduce
-  # necessary number of regexps below
-
-  str.gsub!(/$/, ' ');
-  str.gsub!(/^/, ' ');
+  str.gsub!(/$/, ' ')
+  str.gsub!(/^/, ' ')
 
   # possessive or close-single-quote
   str.gsub!(/\([^\']\)\' /, '\1 \' ')

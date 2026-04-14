@@ -1,7 +1,7 @@
 - suggestions = suggestion_sets.map{|s| s.suggestions}.flatten
 -if suggestions.count > 0
   %h2.subtitle=t(:subtitle, :scope => [:views, :suggestion, :index], :count => suggestions.count)
-  .irc_help=t('views.suggestion.index.irc_help')
+  .irc_help!=t('views.suggestion.index.irc_help')
 
   %hr
 
@@ -19,14 +19,14 @@
   .clear
   #titles
     - if view_mode == 'bubbles'
-      = haml :'suggestion/_bubble_set', :locals => {suggestion_sets: suggestion_sets}
+      != haml :'suggestion/_bubble_set', :locals => {suggestion_sets: suggestion_sets}
     - elsif view_mode == 'tables'
-      = haml :'suggestion/_table_set', :locals => {suggestion_sets: suggestion_sets}
+      != haml :'suggestion/_table_set', :locals => {suggestion_sets: suggestion_sets}
     - elsif view_mode == 'clusters'
-      = haml :'suggestion/_cluster_set', :locals => {suggestion_sets: suggestion_sets}
+      != haml :'suggestion/_cluster_set', :locals => {suggestion_sets: suggestion_sets}
     - else
-      = haml :'suggestion/_table_set', :locals => {suggestion_sets: suggestion_sets}
+      != haml :'suggestion/_table_set', :locals => {suggestion_sets: suggestion_sets}
   .clear
 -else
   %h2.subtitle.grid_12=t(:subtitle, :scope => [:views, :suggestion, :index], :count => suggestions.count)
-  .irc_help=t('views.suggestion.index.irc_help')
+  .irc_help!=t('views.suggestion.index.irc_help')

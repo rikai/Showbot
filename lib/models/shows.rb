@@ -44,9 +44,10 @@ class Shows
     end
   end
 
-  # Get the live show slug
-  # TODO: Figure out how to deal with this properly if it is nil instead of erroring out.
+  # Get the live show slug, or nil if DATA_JSON_URL is not configured.
   def self.fetch_live_show_slug
+    return nil if LIVE_URL.nil? || LIVE_URL.empty?
+
     slug = nil
 
     begin

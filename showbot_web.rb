@@ -3,7 +3,6 @@
 
 # Gems
 require 'bundler/setup'
-require 'coffee_script'
 require 'sinatra' unless defined?(Sinatra)
 require "sinatra/reloader" if development?
 
@@ -34,14 +33,9 @@ class ShowbotWeb < Sinatra::Base
   # Pages
   # ------------------
 
-  # CoffeeScript
-  get '/js/showbot.js' do
-    coffee :'coffeescripts/showbot'
-  end
-
   get '/' do
     @title = "Home"
-    suggestion_sets = Suggestion.recent.group_by_show
+    suggestion_sets = Suggestion.group_by_show(Suggestion.recent)
     view_mode = params[:view_mode] || 'tables'
     haml :index, :locals => {suggestion_sets: suggestion_sets, :view_mode => view_mode}
   end
@@ -49,7 +43,7 @@ class ShowbotWeb < Sinatra::Base
   get '/titles' do
     @title = "Title Suggestions in the last 24 hours"
     view_mode = params[:view_mode] || 'tables'
-    suggestion_sets = Suggestion.recent.group_by_show
+    suggestion_sets = Suggestion.group_by_show(Suggestion.recent)
     if view_mode == 'hacker'
       content_type 'text/plain'
       haml :'suggestion/hacker_mode', :locals => {suggestion_sets: suggestion_sets, :view_mode => view_mode}, :layout => false
@@ -60,12 +54,12 @@ class ShowbotWeb < Sinatra::Base
 
   get '/links' do
     @title = "Suggested Links in the last 24 hours"
-    @links = Link.recent.all(:order => [:created_at.desc])
+    @links = Link.recent
     haml :links
   end
 
   get '/all' do
-    suggestion_sets = Suggestion.all(:order => [:created_at.desc]).group_by_show
+    suggestion_sets = Suggestion.group_by_show(Suggestion.order(created_at: :desc))
     content_type 'text/plain'
     haml :'suggestion/hacker_mode', :locals => {suggestion_sets: suggestion_sets}, :layout => false
   end
@@ -74,7 +68,7 @@ class ShowbotWeb < Sinatra::Base
     content_type :json
     # Only allow XHR requests for voting
     if request.xhr?
-      suggestion = Suggestion.get(params[:id])
+      suggestion = Suggestion.find(params[:id])
       cluster_top = suggestion.top_of_cluster? # figure out if top before adding new vote
       suggestion.vote_up(request.ip)
       {votes: suggestion.votes.count.to_s,
@@ -90,13 +84,19 @@ class ShowbotWeb < Sinatra::Base
 
   get '/clouds_between/:days_a/:days_b' do
     days_ago = [params[:days_a].to_i, params[:days_b].to_i].sort
-    suggestion_sets = Suggestion.all(:created_at => ( (DateTime.now - days_ago[1])..(DateTime.now - days_ago[0]) ), :order => [:created_at.desc]).group_by_show
+    from = DateTime.now - days_ago[1]
+    to   = DateTime.now - days_ago[0]
+    suggestion_sets = Suggestion.group_by_show(
+      Suggestion.where(created_at: from..to).order(created_at: :desc)
+    )
     haml :'clouds', :locals => { cloud_data: WordCount.generate_clouds(suggestion_sets) }
   end
 
   get '/cloud_svg/:year/:month/:day/:index' do
     the_date = DateTime.new(params[:year].to_i, params[:month].to_i, params[:day].to_i)
-    bracketed_suggestion_sets = Suggestion.all(:created_at => ( (the_date - 1)..(the_date + 2) ), :order => [:created_at.desc]).group_by_show
+    bracketed_suggestion_sets = Suggestion.group_by_show(
+      Suggestion.where(created_at: (the_date - 1)..(the_date + 2)).order(created_at: :desc)
+    )
     suggestion_sets = bracketed_suggestion_sets.select { |set| set.suggestions[0].created_at.to_date == the_date.to_date }
 
     haml :'clouds_svg', :locals => { cloud_data: WordCount.generate_clouds(suggestion_sets), cloud_index: params[:index].to_i }
@@ -106,7 +106,9 @@ class ShowbotWeb < Sinatra::Base
     content_type :json
 
     the_date = DateTime.new(params[:year].to_i, params[:month].to_i, params[:day].to_i)
-    bracketed_suggestion_sets = Suggestion.all(:created_at => ( (the_date - 1)..(the_date + 2) ), :order => [:created_at.desc]).group_by_show
+    bracketed_suggestion_sets = Suggestion.group_by_show(
+      Suggestion.where(created_at: (the_date - 1)..(the_date + 2)).order(created_at: :desc)
+    )
 
     { num_clouds: bracketed_suggestion_sets.select { |set| set.suggestions[0].created_at.to_date == the_date.to_date }.count }.to_json
   end
@@ -174,7 +176,7 @@ class ShowbotWeb < Sinatra::Base
 
     api_key = params[:api_key]
     response = nil
-    if api_key and ApiKey.first(value: api_key)
+    if api_key and ApiKey.find_by(value: api_key)
       title = params[:title]
       user = params[:user]
       if title && user
@@ -183,7 +185,7 @@ class ShowbotWeb < Sinatra::Base
           user: user
         )
 
-        if suggestion.saved?
+        if suggestion.persisted?
           response = {
             suggestion: {
               title: title,
@@ -192,7 +194,7 @@ class ShowbotWeb < Sinatra::Base
           }
         else
           response = {
-            error: suggestion.errors.first.first
+            error: suggestion.errors[:title].first
           }
         end
       else

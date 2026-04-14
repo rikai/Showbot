@@ -2,11 +2,11 @@
 .qstart “
 .title_container
   .votes_container
-    .votes=link_and_vote_count(suggestion, request.ip)
+    .votes!=link_and_vote_count(suggestion, request.ip)
     .subtitle=t(:subtitle, :scope => [:views, :suggestion, :_bubble], :count => suggestion.votes_counter)
   .title=h suggestion.title
 .qend ”
-= haml :'suggestion/_timeago', :locals => {datetime: suggestion.created_at}
+!= haml :'suggestion/_timeago', :locals => {datetime: suggestion.created_at}
 .arrow_user
   .user=h suggestion.user
   %span.arrow

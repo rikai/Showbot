@@ -60,7 +60,7 @@ class ShowbotWebTest < Test::Unit::TestCase
   end
 
   def test_too_long_title_api
-    error_message = "That suggestion was too long. Showbot is sorry. Think title, not transcript."
+    error_message = "That suggestion was too long. JBot is sorry. Think title, not transcript."
 
     post '/suggestions/new', params = {api_key: api_key.value, title: ('x'*41), user: valid_user}
 

@@ -5,9 +5,7 @@ def start_cinchbot
     require 'optparse'
     require 'cinchize'
 
-    YAML::ENGINE.yamler = 'psych'
-
-    # Require all of the models files
+# Require all of the models files
     Dir.glob("#{APP_ROOT}/lib/models/*.rb").sort.each { |lib| require lib }
 
     options = {
