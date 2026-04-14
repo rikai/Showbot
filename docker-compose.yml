@@ -1,0 +1,24 @@
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./db:/app/db          # persist SQLite database
+      - ./.env:/app/.env      # mount your .env file
+    environment:
+      RACK_ENV: development
+      DEVELOPMENT_PORT: "5000"
+    # Override SHOWBOT_DATABASE_URL to use SQLite inside the container
+    # (no value needed — environment.rb defaults to sqlite3 when unset)
+
+  test:
+    build:
+      context: .
+      args:
+        BUNDLE_WITHOUT: "production backup irc"   # include test gems
+    entrypoint: []
+    command: sh -c "bundle exec rake spec:unit && bundle exec rake test:test"
+    environment:
+      RACK_ENV: test
+      SHOWBOT_LOCALE: en
